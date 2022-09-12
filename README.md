@@ -18,4 +18,10 @@
 2.	Создать интеграцию данных их Apache Kafka в Clickhouse - Файл configmap.92.source-connector.yaml
 
 3.	Создать мониторинг на случай превышения значения 
-  (ask_01 + bid_01) / 2 лимита 9.9   - Приложены инструкции как это сделать на стороне Kafka кластера
+  (ask_01 + bid_01) / 2 лимита 9.9   - 
+  
+  Приложены инструкции как это сделать на стороне Kafka кластера
+  Также описано на офиц. сайте:
+  https://www.gridgain.com/docs/latest/developers-guide/logging
+
+
