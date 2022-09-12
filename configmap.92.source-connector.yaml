@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: source-bis-sberaccpf
+  namespace: dbzm-cert
+data:
+  source-bis.biscert.kappost.sberaccpf.connector.config.json: |-
+    {
+       "name": "kappost.sberaccpf",
+       "config": {
+          "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+          "connection.url": "jdbc:clickhouse://srv1:8123/logs",
+          "errors.retry.timeout"= '100',
+          "errors.retry.delay.max.ms" = '60000',
+          "connection.user": "KAFKAUSR",
+          "connection.password": "mypass",
+          "db.timezone": "Europe/Moscow",
+          "dialect.name": "Db2DatabaseDialect",
+          "numeric.mapping": "best_fit",
+          "mode": "bulk",
+          "poll.interval.ms": "10800000",
+          "table.whitelist": "BISCERT.KAPPOST.SBERACCPF",
+          "topic.prefix": "bis.cert.cdc.",
+          "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+          "value.converter.schemas.enable": "false",
+          "transforms": "AddPrefix",
+          "transforms.AddPrefix.type": "org.apache.kafka.connect.transforms.RegexRouter",
+          "transforms.AddPrefix.regex": "(.+)",
+          "transforms.AddPrefix.replacement": "bis.cert.cdc.kappost.sberaccpf"
+       }
+    }
+
+  .envs: |-
+    #{ Dynamic (custom for each connector)
+    CONFIG_STORAGE_TOPIC="bis.cert.cdct.configs.sberaccpf"
+    OFFSET_STORAGE_TOPIC="bis.cert.cdct.offsets.sberaccpf"
+    STATUS_STORAGE_TOPIC="bis.cert.cdct.statuses.sberaccpf"
+    GROUP_ID=92
+    OFFSET_FLUSH_INTERVAL_MS=1
+    OFFSET_FLUSH_TIMEOUT_MS=1
+    SHUTDOWN_TIMEOUT=2000
+    #}
+
+    #{ Static (rarely changed)
+      #{ Common part
+    REST_HOST_NAME="0.0.0.0"
+    ADVERTISED_HOST_NAME="0.0.0.0"
+    CONNECT_OFFSET_STORAGE_PARTITIONS=1
+    CONNECT_CONFIG_STORAGE_PARTITIONS=1
+    CONNECT_STATUS_STORAGE_PARTITIONS=1
+    CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR=-1
+    CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR=-1
+    CONNECT_STATUS_STORAGE_REPLICATION_FACTOR=-1
+    CONNECT_OFFSET_STORAGE_CLEANUP_POLICY="compact"
+    CONNECT_CONFIG_STORAGE_CLEANUP_POLICY="compact"
+    CONNECT_STATUS_STORAGE_CLEANUP_POLICY="compact"
+      #}
+
+      #{ for retail cluster of Kafka
+    BOOTSTRAP_SERVERS="srv0012.gts.rus.socgen:9093,srv013.gts.rus.socgen:9093,srv0014.gts.rus.socgen:9093"
+    CONNECT_SECURITY_PROTOCOL="SSL"
+    CONNECT_CONSUMER_SECURITY_PROTOCOL="SSL"
+    CONNECT_PRODUCER_SECURITY_PROTOCOL="SSL"
+    CONNECT_SSL_TRUSTSTORE_LOCATION="/kafka/.ssl/kafka.retail.cert.truststore.jks"
+    CONNECT_PRODUCER_SSL_TRUSTSTORE_LOCATION="/kafka/.ssl/kafka.retail.cert.truststore.jks"
+    CONNECT_CONSUMER_SSL_TRUSTSTORE_LOCATION="/kafka/.ssl/kafka.retail.cert.truststore.jks"
+    CONNECT_SSL_TRUSTSTORE_PASSWORD="pass"
+    CONNECT_PRODUCER_SSL_TRUSTSTORE_PASSWORD="pass"
+    CONNECT_CONSUMER_SSL_TRUSTSTORE_PASSWORD="pass"
+      #}
+    #}
+
+  # only for extra properties that are not in base image's /kafka/config.orig/connect-distributed.properties file
+  extra.connect-distributed.properties: |
+    # nothing extra (yet)
+
+  log4j.properties: |-
+    log4j.rootLogger=INFO, console, gelf
+
+    # Disable excessive reflection warnings - KAFKA-5229
+    log4j.logger.org.reflections=ERROR
+
+    log4j.appender.console=org.apache.log4j.ConsoleAppender
+    log4j.appender.console.threshold=INFO
+    log4j.appender.console.layout=org.apache.log4j.PatternLayout
+    log4j.appender.console.layout.ConversionPattern=%d{ISO8601} %-5p  %X{dbz.connectorType}|%X{dbz.connectorName}|%X{dbz.connectorContext}  %m   [%c]%n
+
+    log4j.appender.gelf=biz.paluch.logging.gelf.log4j.GelfLogAppender
+    log4j.appender.gelf.Threshold=WARN
+    log4j.appender.gelf.Host=udp:mb-cert-log.mynet.rus.socgen
+    log4j.appender.gelf.Port=12201
+    log4j.appender.gelf.Version=1.1
+    log4j.appender.gelf.Facility=logstash-gelf
+    log4j.appender.gelf.ExtractStackTrace=true
+    log4j.appender.gelf.FilterStackTrace=true
+    log4j.appender.gelf.MdcProfiling=true
+    log4j.appender.gelf.IncludeFullMdc=true
+    log4j.appender.gelf.AdditionalFields=namespace=dbzm-cert
+    log4j.appender.gelf.TimestampPattern=yyyy-MM-dd'T'HH:mm:ss.SSS
