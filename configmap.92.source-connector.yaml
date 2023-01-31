@@ -57,7 +57,7 @@ data:
       #}
 
       #{ for retail cluster of Kafka
-    BOOTSTRAP_SERVERS="srv0012.gts.rus.socgen:9093,srv013.gts.rus.socgen:9093,srv0014.gts.rus.socgen:9093"
+    BOOTSTRAP_SERVERS="srv0012.domain.depart:9093,srv013.domain.depart:9093,srv0014.domain.depart:9093"
     CONNECT_SECURITY_PROTOCOL="SSL"
     CONNECT_CONSUMER_SECURITY_PROTOCOL="SSL"
     CONNECT_PRODUCER_SECURITY_PROTOCOL="SSL"
@@ -87,7 +87,7 @@ data:
 
     log4j.appender.gelf=biz.paluch.logging.gelf.log4j.GelfLogAppender
     log4j.appender.gelf.Threshold=WARN
-    log4j.appender.gelf.Host=udp:mb-cert-log.mynet.rus.socgen
+    log4j.appender.gelf.Host=udp:mb-cert-log.mynet.rus.depart
     log4j.appender.gelf.Port=12201
     log4j.appender.gelf.Version=1.1
     log4j.appender.gelf.Facility=logstash-gelf
